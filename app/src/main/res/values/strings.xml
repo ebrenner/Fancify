@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Fancify</string>
+    <string name="button_text_choose">Choose Image</string>
+    <string name="button_text_next">Next</string>
+    <string name="button_text_save">Save</string>
+
+    <string name="exposure">Exposure</string>
+    <string name="saturation">Saturation</string>
+    <string name="contrast">Contrast</string>
+</resources>
