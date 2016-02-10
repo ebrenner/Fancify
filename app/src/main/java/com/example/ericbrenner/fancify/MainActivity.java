@@ -122,12 +122,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         private ArrayList<View> views = new ArrayList<View>();
         LayoutInflater inflater = getLayoutInflater();
-        float[] mParmas = new float[3];
+        float[] mParmas = new float[6];
 
         public AdjustmentsPagerAdapter() {
             addAdjustmentItem(0, getString(R.string.exposure));
             addAdjustmentItem(1, getString(R.string.saturation));
             addAdjustmentItem(2, getString(R.string.contrast));
+            addAdjustmentItem(3, getString(R.string.warmth));
+            addAdjustmentItem(4, getString(R.string.hue));
+            addAdjustmentItem(5, getString(R.string.structure));
         }
 
         @Override
@@ -220,6 +223,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             params.exposure = mParmas[0];
             params.saturation = mParmas[1];
             params.contrast = mParmas[2];
+            params.warmth = mParmas[3];
+            params.hue = mParmas[4];
+            params.structure = mParmas[5];
             return params;
         }
 

@@ -9,4 +9,7 @@ public class EditTaskParams {
     float exposure;
     float saturation;
     float contrast;
+    float warmth;
+    float hue;
+    float structure;
 }

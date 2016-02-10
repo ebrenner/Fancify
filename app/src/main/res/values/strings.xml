@@ -7,4 +7,7 @@
     <string name="exposure">Exposure</string>
     <string name="saturation">Saturation</string>
     <string name="contrast">Contrast</string>
+    <string name="warmth">Warmth</string>
+    <string name="hue">Hue</string>
+    <string name="structure">Structure</string>
 </resources>
