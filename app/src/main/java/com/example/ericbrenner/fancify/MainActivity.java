@@ -1,10 +1,13 @@
 package com.example.ericbrenner.fancify;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.MediaStore;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +24,7 @@ import android.widget.TextView;
 import com.example.ericbrenner.fancify.interfaces.OnEditSignPostListener;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
@@ -87,25 +91,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void setImage(boolean applyAdjustments) {
         try {
+            String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
+            Cursor cur = getContentResolver().query(mUri, orientationColumn, null, null, null);
+            int orientation = -1;
+            if (cur != null && cur.moveToFirst()) {
+                orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
+            }
+            Matrix matrix = new Matrix();
+            matrix.postRotate(orientation);
             final InputStream imageStream = getContentResolver().openInputStream(mUri);
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inSampleSize = 6;
             final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
+            final Bitmap rotImage = Bitmap.createBitmap(selectedImage, 0, 0, selectedImage.getWidth(), selectedImage.getHeight(), matrix, true);
             if (applyAdjustments) {
                 if (mEditTask != null) {
                     mEditTask.cancel(true);
                 }
-                mEditTask = new EditTask(selectedImage, MainActivity.this);
+                mEditTask = new EditTask(rotImage, MainActivity.this);
                 EditTaskParams params = mAdjustmentsPagerAdapter.getEditTaskParams();
                 mEditTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else {
-                mImageView.setImageBitmap(selectedImage);
+                mImageView.setImageBitmap(rotImage);
                 if (!mImageSelected) {
                     mImageSelected = true;
                     setUpAdjustmentsPager();
                 }
             }
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
