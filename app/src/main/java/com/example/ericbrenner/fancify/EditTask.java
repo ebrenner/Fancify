@@ -5,8 +5,6 @@ import android.os.AsyncTask;
 
 import com.example.ericbrenner.fancify.interfaces.OnEditSignPostListener;
 
-import java.io.InputStream;
-
 /**
  * Created by ericbrenner on 2/4/16.
  */
@@ -17,10 +15,12 @@ public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
 
     OnEditSignPostListener mListener;
     Bitmap mBitmap;
+    boolean mShouldSave;
 
-    public EditTask(Bitmap bitmap, OnEditSignPostListener listener) {
+    public EditTask(Bitmap bitmap, OnEditSignPostListener listener, boolean shouldSave) {
         mListener = listener;
         mBitmap = bitmap;
+        mShouldSave = shouldSave;
     }
 
     @Override
@@ -107,7 +107,11 @@ public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
-        mListener.onEditFinished(bitmap);
+        if (mShouldSave) {
+            mListener.onEditFinishedForSave(bitmap);
+        } else {
+            mListener.onEditFinishedForApp(bitmap);
+        }
     }
 
     @Override

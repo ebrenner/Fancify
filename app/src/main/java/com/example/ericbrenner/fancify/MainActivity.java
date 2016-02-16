@@ -1,5 +1,6 @@
 package com.example.ericbrenner.fancify;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -31,6 +32,8 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnEditSignPostListener {
 
     private static final int REQUEST_SELECT_PHOTO = 1;
+    private static final int IN_SAMPLE_SIZE_APP = 6;
+    private static final int IN_SAMPLE_SIZE_SAVE = 6;
 
     private ImageView mImageView;
     private Button mButton;
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (requestCode) {
                 case REQUEST_SELECT_PHOTO:
                     mUri = data.getData();
-                    setImage(false);
+                    setImage(false, false);
                     break;
             }
         }
@@ -69,9 +72,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-        photoPickerIntent.setType("image/*");
-        startActivityForResult(photoPickerIntent, REQUEST_SELECT_PHOTO);
+        if (mImageSelected) {
+            setImage(true, true);
+        } else {
+            Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+            photoPickerIntent.setType("image/*");
+            startActivityForResult(photoPickerIntent, REQUEST_SELECT_PHOTO);
+        }
     }
 
     @Override
@@ -85,11 +92,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onEditFinished(Bitmap bitmap) {
+    public void onEditFinishedForApp(Bitmap bitmap) {
         mImageView.setImageBitmap(bitmap);
     }
 
-    private void setImage(boolean applyAdjustments) {
+    @Override
+    public void onEditFinishedForSave(Bitmap bitmap) {
+        Utilities.insertImage(getContentResolver(), bitmap, "FancifyImage", "Image edited by Fancify app");
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Image saved")
+                .setTitle("Image saved");
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void toggleImageSelected(boolean b) {
+        mImageSelected = b;
+        if (mImageSelected) {
+            mButton.setText(getString(R.string.button_text_save));
+        } else {
+            mButton.setText(getString(R.string.button_text_choose));
+        }
+    }
+
+    private void setImage(boolean applyAdjustments, boolean shouldSave) {
         try {
             String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
             Cursor cur = getContentResolver().query(mUri, orientationColumn, null, null, null);
@@ -101,20 +127,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             matrix.postRotate(orientation);
             final InputStream imageStream = getContentResolver().openInputStream(mUri);
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 6;
+            if (shouldSave) {
+                options.inSampleSize = IN_SAMPLE_SIZE_SAVE;
+            } else {
+                options.inSampleSize = IN_SAMPLE_SIZE_APP;
+            }
             final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
             final Bitmap rotImage = Bitmap.createBitmap(selectedImage, 0, 0, selectedImage.getWidth(), selectedImage.getHeight(), matrix, true);
             if (applyAdjustments) {
                 if (mEditTask != null) {
                     mEditTask.cancel(true);
                 }
-                mEditTask = new EditTask(rotImage, MainActivity.this);
+                mEditTask = new EditTask(rotImage, MainActivity.this, shouldSave);
                 EditTaskParams params = mAdjustmentsPagerAdapter.getEditTaskParams();
                 mEditTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else {
                 mImageView.setImageBitmap(rotImage);
                 if (!mImageSelected) {
-                    mImageSelected = true;
+                    toggleImageSelected(true);
                     setUpAdjustmentsPager();
                 }
             }
@@ -210,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     mParmas[i] = convertProgressToMult(progress);
-                    setImage(true);
+                    setImage(true, false);
                 }
 
                 @Override

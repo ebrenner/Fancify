@@ -9,5 +9,6 @@ public interface OnEditSignPostListener {
 
     public void onEditStarted();
     public void onEditCanceled();
-    public void onEditFinished(Bitmap bitmap);
+    public void onEditFinishedForApp(Bitmap bitmap);
+    public void onEditFinishedForSave(Bitmap bitmap);
 }
