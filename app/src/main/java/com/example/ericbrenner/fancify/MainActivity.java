@@ -1,7 +1,9 @@
 package com.example.ericbrenner.fancify;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +11,8 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -31,7 +35,11 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnEditSignPostListener {
 
+    public static final String IMAGE_NAME = "FancifyImage";
+    public static final String IMAGE_DESC = "Image created with the Fancify app";
+
     private static final int REQUEST_SELECT_PHOTO = 1;
+    private static final int PERMISSIONS_REQUEST_WRITE_EXT_STORAGE = 2;
     private static final int IN_SAMPLE_SIZE_APP = 6;
     private static final int IN_SAMPLE_SIZE_SAVE = 6;
 
@@ -70,14 +78,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButton.setOnClickListener(this);
     }
 
+    private void displayDialog(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message).setTitle(title).setPositiveButton(getString(R.string.dialog_ok), null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     @Override
     public void onClick(View v) {
         if (mImageSelected) {
-            setImage(true, true);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                setImage(true, true);
+            } else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.READ_CONTACTS)) {
+                    displayDialog(getString(R.string.dialog_title_perm_required),
+                            getString(R.string.dialog_message_perm_required));
+                }
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSIONS_REQUEST_WRITE_EXT_STORAGE);
+            }
         } else {
             Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
             photoPickerIntent.setType("image/*");
             startActivityForResult(photoPickerIntent, REQUEST_SELECT_PHOTO);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_WRITE_EXT_STORAGE: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    setImage(true, true);
+                } else {
+                    displayDialog(getString(R.string.dialog_title_not_saved),
+                            getString(R.string.dialog_message_not_saved));
+                }
+            }
         }
     }
 
@@ -98,12 +141,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onEditFinishedForSave(Bitmap bitmap) {
-        Utilities.insertImage(getContentResolver(), bitmap, "FancifyImage", "Image edited by Fancify app");
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Image saved")
-                .setTitle("Image saved");
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        Utilities.insertImage(getContentResolver(), bitmap, IMAGE_NAME, IMAGE_DESC);
+        displayDialog(getString(R.string.dialog_title_saved), getString(R.string.dialog_message_saved));
     }
 
     private void toggleImageSelected(boolean b) {
