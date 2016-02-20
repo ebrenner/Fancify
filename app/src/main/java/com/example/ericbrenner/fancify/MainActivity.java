@@ -2,6 +2,8 @@ package com.example.ericbrenner.fancify;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -41,10 +43,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_SELECT_PHOTO = 1;
     private static final int PERMISSIONS_REQUEST_WRITE_EXT_STORAGE = 2;
     private static final int IN_SAMPLE_SIZE_APP = 6;
-    private static final int IN_SAMPLE_SIZE_SAVE = 6;
+    private static final int IN_SAMPLE_SIZE_SAVE = 3;
 
     private ImageView mImageView;
     private Button mButton;
+    private View mLoadingSpinner;
     private ViewPager mPager;
     private AdjustmentsPagerAdapter mAdjustmentsPagerAdapter;
 
@@ -76,11 +79,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mImageView = (ImageView)findViewById(R.id.image);
         mButton = (Button)findViewById(R.id.button);
         mButton.setOnClickListener(this);
+        mLoadingSpinner = findViewById(R.id.loading_spinner);
+
     }
 
-    private void displayDialog(String title, String message) {
+    private void setUIEnabled(boolean enabled, boolean makePagerInvisible) {
+        mButton.setEnabled(enabled);
+        if (enabled) {
+            mLoadingSpinner.setVisibility(View.GONE);
+            mPager.setVisibility(View.VISIBLE);
+        } else {
+            mLoadingSpinner.setVisibility(View.VISIBLE);
+            if (makePagerInvisible) {
+                mPager.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void displayDialog(String title, String message, Dialog.OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(message).setTitle(title).setPositiveButton(getString(R.string.dialog_ok), null);
+        builder.setMessage(message).setTitle(title).setPositiveButton(getString(R.string.dialog_ok), listener);
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -95,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.READ_CONTACTS)) {
                     displayDialog(getString(R.string.dialog_title_perm_required),
-                            getString(R.string.dialog_message_perm_required));
+                            getString(R.string.dialog_message_perm_required), null);
                 }
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
@@ -118,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     setImage(true, true);
                 } else {
                     displayDialog(getString(R.string.dialog_title_not_saved),
-                            getString(R.string.dialog_message_not_saved));
+                            getString(R.string.dialog_message_not_saved), null);
                 }
             }
         }
@@ -126,23 +144,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onEditStarted() {
-
     }
 
     @Override
     public void onEditCanceled() {
-
+        setUIEnabled(true, false);
     }
 
     @Override
     public void onEditFinishedForApp(Bitmap bitmap) {
+        setUIEnabled(true, false);
         mImageView.setImageBitmap(bitmap);
     }
 
     @Override
     public void onEditFinishedForSave(Bitmap bitmap) {
+        setUIEnabled(true, false);
         Utilities.insertImage(getContentResolver(), bitmap, IMAGE_NAME, IMAGE_DESC);
-        displayDialog(getString(R.string.dialog_title_saved), getString(R.string.dialog_message_saved));
+        displayDialog(getString(R.string.dialog_title_saved), getString(R.string.dialog_message_saved), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                toggleImageSelected(false);
+            }
+        });
     }
 
     private void toggleImageSelected(boolean b) {
@@ -150,7 +174,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mImageSelected) {
             mButton.setText(getString(R.string.button_text_save));
         } else {
+            mImageView.setImageBitmap(null);
             mButton.setText(getString(R.string.button_text_choose));
+            mPager.setVisibility(View.GONE);
         }
     }
 
@@ -177,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (mEditTask != null) {
                     mEditTask.cancel(true);
                 }
+                setUIEnabled(false, shouldSave);
                 mEditTask = new EditTask(rotImage, MainActivity.this, shouldSave);
                 EditTaskParams params = mAdjustmentsPagerAdapter.getEditTaskParams();
                 mEditTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
@@ -195,14 +222,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void setUpAdjustmentsPager() {
-        mPager = (ViewPager) findViewById(R.id.pager);
+        if (mPager == null) {
+            mPager = (ViewPager) findViewById(R.id.pager);
+        }
         mAdjustmentsPagerAdapter = new AdjustmentsPagerAdapter();
         mPager.setAdapter(mAdjustmentsPagerAdapter);
-
-
+        mPager.setVisibility(View.VISIBLE);
     }
 
     private class AdjustmentsPagerAdapter extends PagerAdapter {
+
+        private final int defaultProgress = 5;
 
         private ArrayList<View> views = new ArrayList<View>();
         LayoutInflater inflater = getLayoutInflater();
@@ -270,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         private float convertProgressToMult(int progress) {
-            return progress/5.0f;
+            return progress/((float)defaultProgress);
         }
 
         private void setSeekBarListener(SeekBar seekBar, final int i) {
