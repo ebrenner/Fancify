@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int REQUEST_SELECT_PHOTO = 1;
     private static final int PERMISSIONS_REQUEST_WRITE_EXT_STORAGE = 2;
-    private static final int IN_SAMPLE_SIZE_APP = 6;
-    private static final int IN_SAMPLE_SIZE_SAVE = 3;
+    private static final int MAX_PIXELS_APP = 800*1000;
+    private static final int MAX_PIXELS_SAVE = 1400*1800;
 
     private ImageView mImageView;
     private Button mButton;
@@ -190,13 +190,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             Matrix matrix = new Matrix();
             matrix.postRotate(orientation);
-            final InputStream imageStream = getContentResolver().openInputStream(mUri);
+            InputStream imageStream = getContentResolver().openInputStream(mUri);
             BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            options.inSampleSize = 1;
+            final Bitmap testImage = BitmapFactory.decodeStream(imageStream, null, options);
             if (shouldSave) {
-                options.inSampleSize = IN_SAMPLE_SIZE_SAVE;
+                options.inSampleSize = Utilities.calculateInSampleSize(options, MAX_PIXELS_SAVE);
             } else {
-                options.inSampleSize = IN_SAMPLE_SIZE_APP;
+                options.inSampleSize = Utilities.calculateInSampleSize(options, MAX_PIXELS_APP);
             }
+            imageStream.close();
+            imageStream = getContentResolver().openInputStream(mUri);
+            options.inJustDecodeBounds = false;
             final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
             final Bitmap rotImage = Bitmap.createBitmap(selectedImage, 0, 0, selectedImage.getWidth(), selectedImage.getHeight(), matrix, true);
             if (applyAdjustments) {
