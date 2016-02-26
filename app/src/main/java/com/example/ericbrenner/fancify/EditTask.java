@@ -32,7 +32,7 @@ public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
         int[] pix = new int[width * height];
         mBitmap.getPixels(pix, 0, width, 0, 0, width, height);
 
-        int r, g, b, index, R, G, B;
+        int r, g, b, index, R, G, B, RY, BY, RYY, GYY, BYY, Y;
         float a, rd, gd, bd, md,  ad, wf, hf, nhf, struct;
 
         for (int y = 0; y < height; y++) {
@@ -63,41 +63,32 @@ public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
                 G = assignToExtremeIfOutOfBounds(G);
                 B = (int) (((m + md * editTaskParams.contrast * struct) * editTaskParams.exposure + editTaskParams.saturation * bd) - wf * prodTot + 0.4 * hf * prodTot);
                 B = assignToExtremeIfOutOfBounds(B);
+
+                double angle = (3.14159d * (double) editTaskParams.colorRotation) / 180.0d;
+                int S = (int) (256.0d * Math.sin(angle));
+                int C = (int) (256.0d * Math.cos(angle));
+
+                RY = (70 * R - 59 * G - 11 * B) / 100;
+                BY = (-30 * R - 59 * G + 89 * B) / 100;
+                Y = (30 * R + 59 * G + 11 * B) / 100;
+                RYY = (S * BY + C * RY) / 256;
+                BYY = (C * BY - S * RY) / 256;
+                GYY = (-51 * RYY - 19 * BYY) / 100;
+                R = Y + RYY;
+                R = (R < 0) ? 0 : ((R > 255) ? 255 : R);
+                G = Y + GYY;
+                G = (G < 0) ? 0 : ((G > 255) ? 255 : G);
+                B = Y + BYY;
+                B = (B < 0) ? 0 : ((B > 255) ? 255 : B);
                 pix[index] = 0xff000000 | (R << 16) | (G << 8) | B;
             }
         }
 
-        //contrast
-//        imageAve = imageTot / (width * height);
-//        for (int y = 0; y < height; y++) {
-//            for (int x = 0; x < width; x++) {
-//                if (isCancelled()) {
-//                    pix = null;
-//                    break;
-//                }
-//                index = y * width + x;
-//                r = (pix[index] >> 16) & 0xff;
-//                g = (pix[index] >> 8) & 0xff;
-//                b = pix[index] & 0xff;
-//                a = (r + g + b) / 3.0f;
-//                rd = r - a;
-//                gd = g - a;
-//                bd = b - a;
-//                ad = a - imageAve;
-//                R = (int) (imageAve + ad * editTaskParams.contrast + rd);
-//                G = (int) (imageAve + ad * editTaskParams.contrast + gd);
-//                B = (int) (imageAve + ad * editTaskParams.contrast + bd);
-//                R = assignToExtremeIfOutOfBounds(R);
-//                G = assignToExtremeIfOutOfBounds(G);
-//                B = assignToExtremeIfOutOfBounds(B);
-//                pix[index] = 0xff000000 | (R << 16) | (G << 8) | B;
-//            }
-//        }
-
-        Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bm.setPixels(pix, 0, width, 0, 0, width, height);
+        //Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        mBitmap.setPixels(pix, 0, width, 0, 0, width, height);
+        //bm.setPixels(pix, 0, width, 0, 0, width, height);
         pix = null;
-        return bm;
+        return mBitmap;
     }
 
     @Override

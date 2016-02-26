@@ -1,7 +1,5 @@
 package com.example.ericbrenner.fancify;
 
-import android.graphics.Bitmap;
-
 /**
  * Created by ericbrenner on 2/4/16.
  */
@@ -12,4 +10,5 @@ public class EditTaskParams {
     float warmth;
     float hue;
     float structure;
+    float colorRotation;
 }

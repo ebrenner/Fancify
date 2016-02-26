@@ -203,18 +203,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             imageStream.close();
             imageStream = getContentResolver().openInputStream(mUri);
             options.inJustDecodeBounds = false;
-            final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
-            final Bitmap rotImage = Bitmap.createBitmap(selectedImage, 0, 0, selectedImage.getWidth(), selectedImage.getHeight(), matrix, true);
+            Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
+            selectedImage = Bitmap.createBitmap(selectedImage, 0, 0, selectedImage.getWidth(), selectedImage.getHeight(), matrix, true);
             if (applyAdjustments) {
                 if (mEditTask != null) {
                     mEditTask.cancel(true);
                 }
                 setUIEnabled(false, shouldSave);
-                mEditTask = new EditTask(rotImage, MainActivity.this, shouldSave);
+                mEditTask = new EditTask(selectedImage, MainActivity.this, shouldSave);
                 EditTaskParams params = mAdjustmentsPagerAdapter.getEditTaskParams();
                 mEditTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
             } else {
-                mImageView.setImageBitmap(rotImage);
+                mImageView.setImageBitmap(selectedImage);
                 if (!mImageSelected) {
                     toggleImageSelected(true);
                     setUpAdjustmentsPager();
@@ -238,19 +238,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private class AdjustmentsPagerAdapter extends PagerAdapter {
 
-        private final int defaultProgress = 5;
+        private final int defaultProgress = 10;
 
         private ArrayList<View> views = new ArrayList<View>();
         LayoutInflater inflater = getLayoutInflater();
-        float[] mParmas = new float[6];
+        float[] mFactors;
+        float[] mParmas;
 
         public AdjustmentsPagerAdapter() {
-            addAdjustmentItem(0, getString(R.string.exposure));
-            addAdjustmentItem(1, getString(R.string.saturation));
-            addAdjustmentItem(2, getString(R.string.contrast));
-            addAdjustmentItem(3, getString(R.string.warmth));
-            addAdjustmentItem(4, getString(R.string.hue));
-            addAdjustmentItem(5, getString(R.string.structure));
+            mFactors = new float[7];
+            mParmas = new float[7];
+            addAdjustmentItem(0, getString(R.string.exposure), 1.8f, false);
+            addAdjustmentItem(1, getString(R.string.saturation), 2.5f, false);
+            addAdjustmentItem(2, getString(R.string.contrast), 1.8f, false);
+            addAdjustmentItem(3, getString(R.string.warmth), 2.0f, false);
+            addAdjustmentItem(4, getString(R.string.hue), 1.8f, false);
+            addAdjustmentItem(5, getString(R.string.structure), 1.8f, false);
+            addAdjustmentItem(6, getString(R.string.color_rotation), 360f, true);
         }
 
         @Override
@@ -305,16 +309,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return views.get (position);
         }
 
-        private float convertProgressToMult(int progress) {
-            return progress/((float)defaultProgress);
+        private float convertProgressToMult(int i, int progress) {
+            return progress/((float)defaultProgress) * mFactors[i];
         }
 
         private void setSeekBarListener(SeekBar seekBar, final int i) {
-            mParmas[i] = convertProgressToMult(seekBar.getProgress());
+            mParmas[i] = convertProgressToMult(i, seekBar.getProgress());
             seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    mParmas[i] = convertProgressToMult(progress);
+                    mParmas[i] = convertProgressToMult(i, progress);
                     setImage(true, false);
                 }
 
@@ -330,10 +334,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
 
-        private void addAdjustmentItem(int i, String title) {
+        private void addAdjustmentItem(int i, String title, float factor, boolean setBatToZero) {
+            mFactors[i] = factor;
             RelativeLayout v = (RelativeLayout) inflater.inflate(R.layout.layout_adjustment, null);
             ((TextView)v.findViewById(R.id.title)).setText(title);
             SeekBar seekBar = (SeekBar)v.findViewById(R.id.slider);
+            if (setBatToZero) {
+                seekBar.setProgress(0);
+            }
             setSeekBarListener(seekBar, i);
             addView(v);
         }
@@ -346,6 +354,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             params.warmth = mParmas[3];
             params.hue = mParmas[4];
             params.structure = mParmas[5];
+            params.colorRotation = mParmas[6];
             return params;
         }
 

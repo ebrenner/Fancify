@@ -10,6 +10,7 @@
     <string name="warmth">Warmth</string>
     <string name="hue">Hue</string>
     <string name="structure">Structure</string>
+    <string name="color_rotation">Color Rotation</string>
 
     <string name="dialog_ok">OK</string>
     <string name="dialog_title_perm_required">Permission Required</string>
