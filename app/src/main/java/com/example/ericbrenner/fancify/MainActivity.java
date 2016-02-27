@@ -238,23 +238,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private class AdjustmentsPagerAdapter extends PagerAdapter {
 
-        private final int defaultProgress = 10;
+        private final float defaultProgress = 5;
 
         private ArrayList<View> views = new ArrayList<View>();
         LayoutInflater inflater = getLayoutInflater();
-        float[] mFactors;
         float[] mParmas;
 
         public AdjustmentsPagerAdapter() {
-            mFactors = new float[7];
             mParmas = new float[7];
-            addAdjustmentItem(0, getString(R.string.exposure), 1.8f, false);
-            addAdjustmentItem(1, getString(R.string.saturation), 2.5f, false);
-            addAdjustmentItem(2, getString(R.string.contrast), 1.8f, false);
-            addAdjustmentItem(3, getString(R.string.warmth), 2.0f, false);
-            addAdjustmentItem(4, getString(R.string.hue), 1.8f, false);
-            addAdjustmentItem(5, getString(R.string.structure), 1.8f, false);
-            addAdjustmentItem(6, getString(R.string.color_rotation), 360f, true);
+            addAdjustmentItem(0, getString(R.string.exposure), false);
+            addAdjustmentItem(1, getString(R.string.saturation), false);
+            addAdjustmentItem(2, getString(R.string.contrast), false);
+            addAdjustmentItem(3, getString(R.string.warmth), false);
+            addAdjustmentItem(4, getString(R.string.hue), false);
+            addAdjustmentItem(5, getString(R.string.structure), false);
+            addAdjustmentItem(6, getString(R.string.color_rotation), true);
         }
 
         @Override
@@ -309,16 +307,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return views.get (position);
         }
 
-        private float convertProgressToMult(int i, int progress) {
-            return progress/((float)defaultProgress) * mFactors[i];
-        }
-
         private void setSeekBarListener(SeekBar seekBar, final int i) {
-            mParmas[i] = convertProgressToMult(i, seekBar.getProgress());
+            mParmas[i] = seekBar.getProgress();
             seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    mParmas[i] = convertProgressToMult(i, progress);
+                    mParmas[i] = progress;
                     setImage(true, false);
                 }
 
@@ -334,12 +328,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
 
-        private void addAdjustmentItem(int i, String title, float factor, boolean setBatToZero) {
-            mFactors[i] = factor;
+        private void addAdjustmentItem(int i, String title, boolean setProgressToZero) {
             RelativeLayout v = (RelativeLayout) inflater.inflate(R.layout.layout_adjustment, null);
             ((TextView)v.findViewById(R.id.title)).setText(title);
             SeekBar seekBar = (SeekBar)v.findViewById(R.id.slider);
-            if (setBatToZero) {
+            if (setProgressToZero) {
                 seekBar.setProgress(0);
             }
             setSeekBarListener(seekBar, i);
@@ -348,13 +341,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         public EditTaskParams getEditTaskParams() {
             EditTaskParams params = new EditTaskParams();
-            params.exposure = mParmas[0];
-            params.saturation = mParmas[1];
-            params.contrast = mParmas[2];
-            params.warmth = mParmas[3];
-            params.hue = mParmas[4];
-            params.structure = mParmas[5];
-            params.colorRotation = mParmas[6];
+            params.exposure = mParmas[0]/defaultProgress;
+            params.saturation = mParmas[1]/defaultProgress;
+            params.contrast = mParmas[2]/defaultProgress;
+            params.warmth = mParmas[3]/defaultProgress;
+            params.hue = mParmas[4]/defaultProgress;
+            params.structure = mParmas[5]/defaultProgress;
+            params.colorRotation = mParmas[6]/10f*360;
             return params;
         }
 
