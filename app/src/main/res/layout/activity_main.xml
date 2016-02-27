@@ -10,7 +10,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="@string/button_text_choose"/>
+        android:text="@string/button_text_choose"
+        android:textColor="#844"
+        android:background="#FFF"/>
 
    <ImageView
        android:id="@+id/image"
