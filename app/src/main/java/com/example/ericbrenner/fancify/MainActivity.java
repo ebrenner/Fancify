@@ -203,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             imageStream.close();
             imageStream = getContentResolver().openInputStream(mUri);
             options.inJustDecodeBounds = false;
+            options.inMutable = true;
             Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
             selectedImage = Bitmap.createBitmap(selectedImage, 0, 0, selectedImage.getWidth(), selectedImage.getHeight(), matrix, true);
             if (applyAdjustments) {
@@ -210,9 +211,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mEditTask.cancel(true);
                 }
                 setUIEnabled(false, shouldSave);
-                mEditTask = new EditTask(selectedImage, MainActivity.this, shouldSave);
                 EditTaskParams params = mAdjustmentsPagerAdapter.getEditTaskParams();
-                mEditTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+                mEditTask = new EditTask(params, MainActivity.this, shouldSave);
+                mEditTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, selectedImage);
             } else {
                 mImageView.setImageBitmap(selectedImage);
                 if (!mImageSelected) {

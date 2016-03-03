@@ -8,29 +8,31 @@ import com.example.ericbrenner.fancify.interfaces.OnEditSignPostListener;
 /**
  * Created by ericbrenner on 2/4/16.
  */
-public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
+public class EditTask extends AsyncTask<Bitmap, Void, Bitmap> {
 
     private static float m = 127.5f;
     private static float prodTot = 50f;
 
+    EditTaskParams mEditTaskParams;
     OnEditSignPostListener mListener;
-    Bitmap mBitmap;
+    //Bitmap mBitmap;
     boolean mShouldSave;
 
-    public EditTask(Bitmap bitmap, OnEditSignPostListener listener, boolean shouldSave) {
+    public EditTask(EditTaskParams editTaskParams, OnEditSignPostListener listener, boolean shouldSave) {
+        mEditTaskParams = editTaskParams;
         mListener = listener;
-        mBitmap = bitmap;
+        //mBitmap = bitmap;
         mShouldSave = shouldSave;
     }
 
     @Override
-    protected Bitmap doInBackground(EditTaskParams... params) {
-        EditTaskParams editTaskParams = params[0];
+    protected Bitmap doInBackground(Bitmap... params) {
+        Bitmap bitmap = params[0];
 
-        int width = mBitmap.getWidth();
-        int height = mBitmap.getHeight();
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
         int[] pix = new int[width * height];
-        mBitmap.getPixels(pix, 0, width, 0, 0, width, height);
+        bitmap.getPixels(pix, 0, width, 0, 0, width, height);
 
         int r, g, b, index, R, G, B, RY, BY, RYY, GYY, BYY, Y;
         float a, rd, gd, bd, md,  ad, wf, hf, nhf, struct;
@@ -50,21 +52,21 @@ public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
                 gd = g - a;
                 bd = b - a;
                 md = a - m;
-                wf = editTaskParams.warmth - 1;
-                hf = editTaskParams.hue - 1;
+                wf = mEditTaskParams.warmth - 1;
+                hf = mEditTaskParams.hue - 1;
                 if (md < 0) {
-                    struct = editTaskParams.structure;
+                    struct = mEditTaskParams.structure;
                 } else {
                     struct = 1;
                 }
-                R = (int) (((m + md * editTaskParams.contrast * struct) * editTaskParams.exposure + editTaskParams.saturation * rd) + 0.6f * wf * prodTot + 0.6 * hf * prodTot);
+                R = (int) (((m + md * mEditTaskParams.contrast * struct) * mEditTaskParams.exposure + mEditTaskParams.saturation * rd) + 0.6f * wf * prodTot + 0.6 * hf * prodTot);
                 R = assignToExtremeIfOutOfBounds(R);
-                G = (int) (((m + md * editTaskParams.contrast * struct) * editTaskParams.exposure + editTaskParams.saturation * gd) + 0.4f * wf * prodTot - hf * prodTot);
+                G = (int) (((m + md * mEditTaskParams.contrast * struct) * mEditTaskParams.exposure + mEditTaskParams.saturation * gd) + 0.4f * wf * prodTot - hf * prodTot);
                 G = assignToExtremeIfOutOfBounds(G);
-                B = (int) (((m + md * editTaskParams.contrast * struct) * editTaskParams.exposure + editTaskParams.saturation * bd) - wf * prodTot + 0.4 * hf * prodTot);
+                B = (int) (((m + md * mEditTaskParams.contrast * struct) * mEditTaskParams.exposure + mEditTaskParams.saturation * bd) - wf * prodTot + 0.4 * hf * prodTot);
                 B = assignToExtremeIfOutOfBounds(B);
 
-                double angle = (3.14159d * (double) editTaskParams.colorRotation) / 180.0d;
+                double angle = (3.14159d * (double) mEditTaskParams.colorRotation) / 180.0d;
                 int S = (int) (256.0d * Math.sin(angle));
                 int C = (int) (256.0d * Math.cos(angle));
 
@@ -85,10 +87,10 @@ public class EditTask extends AsyncTask<EditTaskParams, Void, Bitmap> {
         }
 
         //Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        mBitmap.setPixels(pix, 0, width, 0, 0, width, height);
+        bitmap.setPixels(pix, 0, width, 0, 0, width, height);
         //bm.setPixels(pix, 0, width, 0, 0, width, height);
         pix = null;
-        return mBitmap;
+        return bitmap;
     }
 
     @Override
