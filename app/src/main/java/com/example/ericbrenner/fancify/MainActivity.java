@@ -204,28 +204,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private int getImageOrientation() {
+        String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
+        Cursor cur = getContentResolver().query(mUri, orientationColumn, null, null, null);
+        int orientation = -1;
+        if (cur != null && cur.moveToFirst()) {
+            orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
+        }
+        return orientation;
+    }
+
+    private int calculateImageInSampleSize(boolean shouldSave) {
+        InputStream imageStream = null;
+        try {
+            imageStream = getContentResolver().openInputStream(mUri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        options.inSampleSize = 1;
+        final Bitmap testImage = BitmapFactory.decodeStream(imageStream, null, options);
+        try {
+            imageStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (shouldSave) {
+            return Utilities.calculateInSampleSize(options, MAX_PIXELS_SAVE);
+        } else {
+            return Utilities.calculateInSampleSize(options, MAX_PIXELS_APP);
+        }
+    }
+
     private void setImage(boolean applyAdjustments, boolean shouldSave) {
         try {
-            String[] orientationColumn = {MediaStore.Images.Media.ORIENTATION};
-            Cursor cur = getContentResolver().query(mUri, orientationColumn, null, null, null);
-            int orientation = -1;
-            if (cur != null && cur.moveToFirst()) {
-                orientation = cur.getInt(cur.getColumnIndex(orientationColumn[0]));
-            }
+            int orientation = getImageOrientation();
             Matrix matrix = new Matrix();
             matrix.postRotate(orientation);
-            InputStream imageStream = getContentResolver().openInputStream(mUri);
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            options.inSampleSize = 1;
-            final Bitmap testImage = BitmapFactory.decodeStream(imageStream, null, options);
-            if (shouldSave) {
-                options.inSampleSize = Utilities.calculateInSampleSize(options, MAX_PIXELS_SAVE);
-            } else {
-                options.inSampleSize = Utilities.calculateInSampleSize(options, MAX_PIXELS_APP);
-            }
-            imageStream.close();
-            imageStream = getContentResolver().openInputStream(mUri);
+            options.inSampleSize = calculateImageInSampleSize(shouldSave);
+            InputStream imageStream = getContentResolver().openInputStream(mUri);
             options.inJustDecodeBounds = false;
             options.inMutable = true;
             Bitmap selectedImage = BitmapFactory.decodeStream(imageStream, null, options);
