@@ -19,5 +19,6 @@
     <string name="dialog_message_saved">Your image has been saved</string>
     <string name="dialog_title_not_saved">Failed to Save</string>
     <string name="dialog_message_not_saved">Your image could not be saved due to denied permission to write to external storage</string>
-
+    <string name="dialog_directions_title">Swipe to Navigate</string>
+    <string name="dialog_directions_message">Swipe to navigate between effects</string>
 </resources>

@@ -12,7 +12,7 @@
         android:layout_alignParentLeft="true"
         android:gravity="center"
         android:background="#222"
-        android:textColor="@color/colorAccent"
+        android:textColor="#FFF"
         android:textSize="20sp"
         android:padding="10dp"/>
 

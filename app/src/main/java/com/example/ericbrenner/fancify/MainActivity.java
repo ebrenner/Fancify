@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static final String IMAGE_NAME = "FancifyImage";
     public static final String IMAGE_DESC = "Image created with the Fancify app";
 
+    public static final String KEY_IS_FIRST_RUN = "KEY_IS_FIRST_RUN";
+
     private static final int REQUEST_SELECT_PHOTO = 1;
     private static final int PERMISSIONS_REQUEST_WRITE_EXT_STORAGE = 2;
     private static final int MAX_PIXELS_APP = 800*1000;
@@ -66,8 +69,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case REQUEST_SELECT_PHOTO:
                     mUri = data.getData();
                     setImage(false, false);
+                    displayDirectionsDialogIfFirstRun();
                     break;
             }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mImageSelected) {
+            toggleImageSelected(false);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void displayDirectionsDialogIfFirstRun() {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        boolean isFirst = preferences.getBoolean(KEY_IS_FIRST_RUN, true);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(KEY_IS_FIRST_RUN, false);
+        editor.commit();
+        if (isFirst) {
+            displayDialog(getString(R.string.dialog_directions_title),
+                    getString(R.string.dialog_directions_message), null);
         }
     }
 
@@ -80,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButton = (Button)findViewById(R.id.button);
         mButton.setOnClickListener(this);
         mLoadingSpinner = findViewById(R.id.loading_spinner);
-
     }
 
     private void setUIEnabled(boolean enabled, boolean makePagerInvisible) {

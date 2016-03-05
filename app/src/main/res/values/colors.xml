@@ -4,5 +4,5 @@
     <color name="colorPrimaryDark">#191919</color>
     <color name="colorAccent">#A55</color>
     <color name="colorAccentDisabled">#9A55</color>
-    <color name="colorAccentSelected">#9A77</color>
+    <color name="colorAccentSelected">#A77</color>
 </resources>
