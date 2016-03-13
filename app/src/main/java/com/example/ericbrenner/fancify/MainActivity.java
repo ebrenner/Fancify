@@ -134,11 +134,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     == PackageManager.PERMISSION_GRANTED) {
                 setImage(true, true);
             } else {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.READ_CONTACTS)) {
-                    displayDialog(getString(R.string.dialog_title_perm_required),
-                            getString(R.string.dialog_message_perm_required), null);
-                }
+//                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+//                    displayDialog(getString(R.string.dialog_title_perm_required),
+//                            getString(R.string.dialog_message_perm_required), null);
+//                }
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         PERMISSIONS_REQUEST_WRITE_EXT_STORAGE);
@@ -230,11 +230,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (shouldSave) {
-            return Utilities.calculateInSampleSize(options, MAX_PIXELS_SAVE);
-        } else {
-            return Utilities.calculateInSampleSize(options, MAX_PIXELS_APP);
-        }
+        int reqArea = MAX_PIXELS_APP;
+//        if (shouldSave) {
+//            reqArea = MAX_PIXELS_SAVE;
+//        }
+        return Utilities.calculateInSampleSize(options, reqArea);
     }
 
     private void setImage(boolean applyAdjustments, boolean shouldSave) {
