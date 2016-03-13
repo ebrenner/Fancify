@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.1"
 
     defaultConfig {
-        applicationId "com.example.ericbrenner.fancify"
+        applicationId "com.fancifeye.fancify"
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1

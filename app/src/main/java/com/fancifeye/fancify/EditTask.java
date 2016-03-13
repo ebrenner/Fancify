@@ -1,9 +1,7 @@
-package com.example.ericbrenner.fancify;
+package com.fancifeye.fancify;
 
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-
-import com.example.ericbrenner.fancify.interfaces.OnEditSignPostListener;
 
 /**
  * Created by ericbrenner on 2/4/16.
@@ -33,7 +31,7 @@ public class EditTask extends AsyncTask<Bitmap, Void, Bitmap> {
         bitmap.getPixels(pix, 0, width, 0, 0, width, height);
 
         int r, g, b, index, R, G, B, RY, BY, RYY, GYY, BYY, Y;
-        float a, rd, gd, bd, md,  ad, wf, hf, nhf, struct;
+        float a, rd, gd, bd, md, wf, hf, struct;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {

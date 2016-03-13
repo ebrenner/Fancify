@@ -1,4 +1,4 @@
-package com.example.ericbrenner.fancify;
+package com.fancifeye.fancify;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -28,8 +28,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
-import com.example.ericbrenner.fancify.interfaces.OnEditSignPostListener;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

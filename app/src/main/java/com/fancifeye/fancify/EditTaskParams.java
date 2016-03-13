@@ -1,4 +1,4 @@
-package com.example.ericbrenner.fancify;
+package com.fancifeye.fancify;
 
 /**
  * Created by ericbrenner on 2/4/16.

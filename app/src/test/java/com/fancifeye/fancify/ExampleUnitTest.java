@@ -1,4 +1,4 @@
-package com.example.ericbrenner.fancify;
+package com.fancifeye.ericbrenner.fancify;
 
 import org.junit.Test;
 

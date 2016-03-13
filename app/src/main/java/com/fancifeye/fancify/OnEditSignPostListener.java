@@ -1,4 +1,4 @@
-package com.example.ericbrenner.fancify.interfaces;
+package com.fancifeye.fancify;
 
 import android.graphics.Bitmap;
 

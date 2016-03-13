@@ -1,4 +1,4 @@
-package com.example.ericbrenner.fancify;
+package com.fancifeye.fancify;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -37,11 +37,10 @@ public class Utilities {
         values.put(MediaStore.Images.Media.DISPLAY_NAME, title);
         values.put(MediaStore.Images.Media.DESCRIPTION, description);
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-// Add the date meta data to ensure the image is added at the front of the gallery
         values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
         Uri url = null;
-        String stringUrl = null;    /* value to be returned */
+        String stringUrl = null;
         try {
             url = cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             if (source != null) {
@@ -52,9 +51,7 @@ public class Utilities {
                     imageOut.close();
                 }
                 long id = ContentUris.parseId(url);
-// Wait until MINI_KIND thumbnail is generated.
                 Bitmap miniThumb = MediaStore.Images.Thumbnails.getThumbnail(cr, id, MediaStore.Images.Thumbnails.MINI_KIND, null);
-// This is for backward compatibility.
                 storeThumbnail(cr, miniThumb, id, 50F, 50F,MediaStore.Images.Thumbnails.MICRO_KIND);
             } else {
                 cr.delete(url, null, null);
@@ -84,7 +81,6 @@ public class Utilities {
             float width,
             float height,
             int kind) {
-// create the matrix to scale it
         Matrix matrix = new Matrix();
         float scaleX = width / source.getWidth();
         float scaleY = height / source.getHeight();
